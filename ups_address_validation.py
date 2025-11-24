@@ -5,11 +5,19 @@ UPS Address Validation Tool
 使用OAuth认证和Address Validation API进行地址验证
 """
 
+import os
 import requests
 import json
 import base64
 from typing import Dict, Optional, Tuple
 from datetime import datetime, timedelta
+
+# 尝试导入python-dotenv（可选）
+try:
+    from dotenv import load_dotenv
+    load_dotenv()  # 加载.env文件中的环境变量
+except ImportError:
+    pass  # 如果没有安装python-dotenv，继续使用系统环境变量
 
 
 class UPSAddressValidator:
@@ -290,9 +298,24 @@ def main():
     print("使用 OAuth 认证和 Address Validation API")
     print("="*60)
 
-    # UPS API凭证
-    CLIENT_ID = "jrv1UbCVu8WY7AwzbkmC6y1r9AmFDYHiChbCFxSV3Zp2ejIP"
-    CLIENT_SECRET = "T15iAJ3WESj7jNdWfi9VutfZ5O55SqQSbQsQ2vaMStbVrt1F4PYBKvEkxPeCLgwy"
+    # 从环境变量读取UPS API凭证
+    CLIENT_ID = os.getenv("UPS_CLIENT_ID")
+    CLIENT_SECRET = os.getenv("UPS_CLIENT_SECRET")
+
+    # 检查凭证是否存在
+    if not CLIENT_ID or not CLIENT_SECRET:
+        print("\n❌ 错误: 未找到UPS API凭证!")
+        print("\n请设置以下环境变量:")
+        print("  - UPS_CLIENT_ID: 您的UPS客户识别码")
+        print("  - UPS_CLIENT_SECRET: 您的UPS客户密钥")
+        print("\n方法1: 使用.env文件 (推荐)")
+        print("  1. 复制 .env.example 为 .env")
+        print("  2. 在 .env 文件中填入您的凭证")
+        print("  3. 运行: pip install python-dotenv")
+        print("\n方法2: 直接设置环境变量")
+        print("  export UPS_CLIENT_ID='your_client_id'")
+        print("  export UPS_CLIENT_SECRET='your_client_secret'")
+        return 1
 
     # 创建验证器实例
     validator = UPSAddressValidator(CLIENT_ID, CLIENT_SECRET)
