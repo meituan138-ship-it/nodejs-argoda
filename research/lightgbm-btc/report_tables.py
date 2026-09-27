@@ -18,8 +18,10 @@ NAMES = {
     "E7_vol_h24": "E7 波动率 24h",
     "E8_reg_h168": "E8 回归 168h（一周）",
     "E9_reg_h24_fixed300": "E9 固定300棵树 24h",
+    "E10_ridge_h24": "E10 Ridge 线性模型 24h",
     "C1_shuffle_h24": "C1 阴性对照（打乱标签）",
     "C2_leak_h24": "C2 阳性对照（泄漏特征 ρ≈0.1）",
+    "C3_leak_ridge_h24": "C3 阳性对照 + Ridge",
 }
 STRAT_NAMES = {
     "BH_spot": "买入持有（现货）",
@@ -89,7 +91,7 @@ def strategy_table(st: pd.DataFrame) -> str:
 
 def control_table(sig: pd.DataFrame, st: pd.DataFrame) -> str:
     rows = ["| 对照 | 月均 Rank IC | t 值 | 方向 AUC | 多空夏普（扣费） |", "|---|---:|---:|---:|---:|"]
-    for name in ("C1_shuffle_h24", "C2_leak_h24", "E1_reg_h24"):
+    for name in ("C1_shuffle_h24", "C2_leak_h24", "C3_leak_ridge_h24", "E1_reg_h24", "E10_ridge_h24"):
         if name not in sig.index:
             continue
         r = sig.loc[name]
@@ -100,8 +102,9 @@ def control_table(sig: pd.DataFrame, st: pd.DataFrame) -> str:
 
 
 def yearly_tables(yr: pd.DataFrame, st_daily: pd.DataFrame) -> str:
-    ic = yr.pivot(index="experiment", columns="year", values="ic_spearman")
-    sh = yr.pivot(index="experiment", columns="year", values="sharpe")
+    order = [n for n in NAMES if n in set(yr["experiment"])]
+    ic = yr.pivot(index="experiment", columns="year", values="ic_spearman").reindex(order)
+    sh = yr.pivot(index="experiment", columns="year", values="sharpe").reindex(order)
     years = list(ic.columns)
     head = "| 实验 | " + " | ".join(str(y) for y in years) + " |\n|---|" + "---:|" * len(years)
     out = ["**分年 Rank IC（全样本逐小时）**", "", head]

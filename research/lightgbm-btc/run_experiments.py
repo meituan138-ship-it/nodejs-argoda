@@ -1,11 +1,12 @@
 """Run the pre-declared experiment set on real Binance data and write results/.
 
-    python run_experiments.py            # everything (~1h on 4 cores)
+    python run_experiments.py            # everything (~1.5h on 4 cores, predictions are cached)
     python run_experiments.py --only E1_reg_h24 C2_leak_h24
 
-The list below was fixed before looking at any test-period result; all of
-them are reported, including the ones that fail, and the deflated Sharpe
-ratio accounts for the number of strategy variants tried.
+E1-E8 and C1/C2 were fixed before looking at any test-period result; the
+later additions say when and why they were added. Every experiment is
+reported, including the ones that fail, and the deflated Sharpe ratio
+accounts for the number of strategy variants tried.
 """
 from __future__ import annotations
 
@@ -45,6 +46,10 @@ EXPERIMENTS = [
     Experiment("E9_reg_h24_fixed300", n_trees=300),
     Experiment("C1_shuffle_h24", control="shuffle", seeds=(0,)),  # negative control
     Experiment("C2_leak_h24", control="leak", seeds=(0,)),        # positive control (corr≈0.1 leak)
+    # added after C2 showed LightGBM recovering only part of a known weak signal:
+    # the same features in a linear model (the DRW-2025 winner's point)
+    Experiment("E10_ridge_h24", model="ridge"),
+    Experiment("C3_leak_ridge_h24", model="ridge", control="leak"),
 ]
 PERP_FEE_BPS = 5.0   # Binance USD-M taker ≈ 4.5–5 bps
 SPOT_FEE_BPS = 10.0  # Binance spot taker

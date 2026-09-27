@@ -17,7 +17,7 @@ from .labels import (
     forward_log_return, meta_label, realized_vol_target, regression_target,
     triple_barrier, tsmom_side,
 )
-from .model import fit_predict
+from .model import fit_predict, fit_predict_ridge
 
 
 @dataclass
@@ -38,6 +38,7 @@ class Experiment:
     meta_lookback: int = 168
     min_train_bars: int = 24 * 365
     n_trees: int | None = None  # fixed tree count instead of early stopping
+    model: str = "lgbm"  # lgbm | ridge (linear baseline on the same features)
     control: str | None = None  # None | "shuffle" | "leak"
     leak_noise: float = 10.0  # corr(leak, target) ≈ 1/sqrt(1 + leak_noise²) ≈ 0.1
 
@@ -118,8 +119,11 @@ def run_experiment(exp: Experiment, ds: MarketDataset, verbose: bool = True) -> 
         ytr, yva = y_train.to_numpy()[tr], y_train.to_numpy()[va]
         if exp.control == "shuffle":
             ytr, yva = rng.permutation(ytr), rng.permutation(yva)
-        p, info = fit_predict(X.iloc[tr], ytr, X.iloc[va], yva, X.iloc[f.test],
-                              task=task, params=exp.params, seeds=exp.seeds, n_trees=exp.n_trees)
+        if exp.model == "ridge":
+            p, info = fit_predict_ridge(X.iloc[tr], ytr, X.iloc[va], yva, X.iloc[f.test])
+        else:
+            p, info = fit_predict(X.iloc[tr], ytr, X.iloc[va], yva, X.iloc[f.test],
+                                  task=task, params=exp.params, seeds=exp.seeds, n_trees=exp.n_trees)
         preds.iloc[f.test] = p
         gain += info["gain"]
         best_iters.extend(info["best_iters"])

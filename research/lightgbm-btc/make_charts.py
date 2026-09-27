@@ -68,7 +68,9 @@ def equity(t, name):
         ax.annotate(f"{eq.iloc[-1]:.2f}×", (eq.index[-1], eq.iloc[-1]), xytext=(8, 0),
                     textcoords="offset points", va="center", fontsize=9, color=t["ink2"])
     ax.set_yscale("log")
+    ax.yaxis.set_major_locator(matplotlib.ticker.FixedLocator([0.5, 0.75, 1, 1.5, 2, 3, 4]))
     ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}×"))
+    ax.yaxis.set_minor_locator(matplotlib.ticker.NullLocator())
     ax.set_title("Growth of 1 USDT, walk-forward out-of-sample, net of fees (2021-01 → 2026-08)",
                  loc="left", fontsize=11, color=t["ink"])
     leg = ax.legend(loc="upper left", frameon=False, fontsize=9)
@@ -84,7 +86,9 @@ def ic_chart(t, name):
     s = s[s["task"].isin(["reg", "tb"])]
     mean = s["ic_monthly_mean"]
     se = (mean / s["ic_monthly_tstat"]).abs()
-    order = mean.index[::-1]
+    exps = sorted((i for i in mean.index if i.startswith("E")), key=lambda i: int(i.split("_")[0][1:]))
+    ctrls = sorted(i for i in mean.index if i.startswith("C"))
+    order = pd.Index(exps + ctrls)[::-1]
     fig, ax = _fig(t, 8.0, 4.2)
     ax.grid(axis="y", visible=False)
     colors = [t["muted"] if i.startswith("C") else t["series"][0] for i in order]

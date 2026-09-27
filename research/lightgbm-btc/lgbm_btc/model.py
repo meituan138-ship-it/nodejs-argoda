@@ -86,3 +86,27 @@ def fit_predict(
         gain += pd.Series(booster.feature_importance("gain"), index=X_train.columns)
     info = {"best_iters": best_iters, "gain": gain / len(seeds)}
     return np.mean(preds, axis=0), info
+
+
+def fit_predict_ridge(
+    X_train: pd.DataFrame, y_train: np.ndarray,
+    X_valid: pd.DataFrame, y_valid: np.ndarray,
+    X_test: pd.DataFrame, shrink: float = 0.1,
+) -> tuple[np.ndarray, dict]:
+    """Linear baseline on the same features: winsorise at the train 1/99%,
+    median-fill, z-score, ridge with alpha = shrink * n (heavy shrinkage)."""
+    from sklearn.linear_model import Ridge
+
+    X = pd.concat([X_train, X_valid])
+    y = np.concatenate([y_train, y_valid])
+    lo, hi, med = X.quantile(0.01), X.quantile(0.99), X.median()
+
+    def prep(frame: pd.DataFrame) -> pd.DataFrame:
+        return frame.clip(lo, hi, axis=1).fillna(med).fillna(0.0)
+
+    Xp = prep(X)
+    mu, sd = Xp.mean(), Xp.std().replace(0, 1.0)
+    model = Ridge(alpha=shrink * len(Xp)).fit((Xp - mu) / sd, y)
+    pred = model.predict((prep(X_test) - mu) / sd)
+    coef = pd.Series(np.abs(model.coef_), index=X.columns)
+    return pred, {"best_iters": [0], "gain": coef}
