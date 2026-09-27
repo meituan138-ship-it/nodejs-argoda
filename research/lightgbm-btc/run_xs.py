@@ -24,6 +24,7 @@ TRAIN_START = pd.Timestamp("2019-04-01", tz="UTC")
 TEST_START, TEST_END = "2021-01-01", "2026-09-01"
 FEE_BPS = 5.0
 PARAMS = {"min_data_in_leaf": 2000}
+TRAIN_EVERY_H = 4  # sample training rows every N hours
 
 
 def walk_forward(X: pd.DataFrame, features: list[str], model: str) -> pd.Series:
@@ -33,7 +34,7 @@ def walk_forward(X: pd.DataFrame, features: list[str], model: str) -> pd.Series:
     months = pd.date_range(TEST_START, TEST_END, freq="MS", tz="UTC")
     for a, b in zip(months[:-1], months[1:]):
         cutoff = a - pd.Timedelta(hours=H + 24)  # purge label window + embargo
-        tr = np.where(ok & (t >= TRAIN_START) & (t < cutoff) & (t.hour % 4 == 0))[0]
+        tr = np.where(ok & (t >= TRAIN_START) & (t < cutoff) & (t.hour % TRAIN_EVERY_H == 0))[0]
         te = np.where((t >= a) & (t < b) & (t.hour == 0))[0]
         if len(te) == 0:
             continue

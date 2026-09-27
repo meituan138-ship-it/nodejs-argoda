@@ -57,24 +57,34 @@ def _coin_features(df: pd.DataFrame, sig: pd.Series, mkt_logc: pd.Series) -> dic
     return out
 
 
-def build_panel(panel: dict[str, pd.DataFrame], min_history: int = 24 * 60):
-    """Long table indexed by (time, coin) with features, target and forward return."""
+def build_panel(panel: dict[str, pd.DataFrame], min_history: int = 24 * 60,
+                eligible: pd.DataFrame | None = None):
+    """Long table indexed by (time, coin) with features, target and forward return.
+
+    ``eligible`` (hour × coin booleans) restricts rows and the market average
+    to a point-in-time universe; by default every coin listed > ``min_history``.
+    """
     grid = pd.date_range(min(d.index[0] for d in panel.values()),
                          max(d.index[-1] for d in panel.values()), freq="h")
     close = pd.DataFrame({c: d["close"] for c, d in panel.items()}).reindex(grid)
     listed = close.notna().cumsum()  # bars since listing
+    if eligible is None:
+        eligible = listed > min_history
+    eligible = eligible.reindex(index=grid, columns=close.columns, fill_value=False)
     logret = np.log(close).diff()
-    mkt_ret = logret.where(listed > min_history).mean(axis=1).fillna(0.0)
+    mkt_ret = logret.where(eligible).mean(axis=1).fillna(0.0)
     mkt_logc = mkt_ret.cumsum()
 
     frames = []
     for coin, d in panel.items():
         d = d.reindex(grid)
-        ok = listed[coin] > min_history
+        ok = eligible[coin]
         sig = np.log(d["close"]).diff().ewm(span=168, adjust=False, min_periods=168).std()
         f = pd.DataFrame(_coin_features(d, sig, mkt_logc), index=grid)
-        fwd = np.log(d["close"].shift(-H) / d["close"])
+        # a coin delisted inside the holding window is exited at its last traded price
+        fwd = np.log(d["close"].ffill().shift(-H) / d["close"])
         f["fwd_ret"] = fwd
+        f["adv30"] = d["quote_volume"].rolling(720, min_periods=240).sum() / 30
         f["sig"] = sig
         f["coin"] = coin
         frames.append(f[ok.to_numpy()])
@@ -82,7 +92,7 @@ def build_panel(panel: dict[str, pd.DataFrame], min_history: int = 24 * 60):
     X.index.name = "time"
     X = X.replace([np.inf, -np.inf], np.nan)
 
-    feat_cols = [c for c in X.columns if c not in ("fwd_ret", "sig", "coin")]
+    feat_cols = [c for c in X.columns if c not in ("fwd_ret", "sig", "coin", "adv30")]
     g = X.groupby(level=0)
     ranks = g[feat_cols].rank(pct=True).add_prefix("xs_")
     # market-wide state, identical for every coin at a given hour
@@ -90,7 +100,7 @@ def build_panel(panel: dict[str, pd.DataFrame], min_history: int = 24 * 60):
         "mkt_ret_24": mkt_logc - mkt_logc.shift(24),
         "mkt_ret_168": mkt_logc - mkt_logc.shift(168),
         "mkt_rv_168": np.log(mkt_ret.rolling(168).std() + EPS),
-        "n_coins": (listed > min_history).sum(axis=1).astype(float),
+        "n_coins": eligible.sum(axis=1).astype(float),
         "hour": pd.Series(grid.hour, index=grid, dtype=float),
     }, index=grid)
     X = pd.concat([X, ranks], axis=1).join(mkt, how="left")
