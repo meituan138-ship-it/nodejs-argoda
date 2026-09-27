@@ -74,7 +74,8 @@ def simulate(D: pd.DataFrame, col: str, fund: pd.DataFrame, hold_days: int = 1,
 
 def main() -> None:
     klines, funding = load_candidates()
-    grid = pd.date_range(min(d.index[0] for d in klines.values()), "2026-08-31 23:00", freq="h", tz="UTC")
+    start = min(d.index[0] for d in klines.values())
+    grid = pd.date_range(start, pd.Timestamp("2026-08-31 23:00").tz_localize(start.tz), freq="h")
     member = monthly_universe(klines, funding, grid)
     X, features = build_panel(klines, eligible=member)
     X = X.set_index("coin", append=True)
