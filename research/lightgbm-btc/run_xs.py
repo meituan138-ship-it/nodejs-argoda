@@ -78,6 +78,7 @@ def long_short(df: pd.DataFrame, col: str, fee_bps: float = FEE_BPS, q: float = 
 
 
 def stats(r: pd.Series) -> dict:
+    r = r.dropna()
     eq = (1 + r).cumprod()
     years = len(r) / 365
     return {"cagr": float(eq.iloc[-1] ** (1 / years) - 1), "sharpe": float(r.mean() / r.std() * np.sqrt(365)),
