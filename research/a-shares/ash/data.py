@@ -29,20 +29,26 @@ def code_universe() -> list[str]:
     return [f"{ex}{n:06d}" for ex, a, b in rng for n in range(a, b)]
 
 
+class FetchError(RuntimeError):
+    pass
+
+
 def _get(code: str, a: str, b: str, fq: str) -> list:
+    """Empty list = no data; FetchError = rate-limited / network failure (never cached)."""
     url = URL.format(code=code, a=a, b=b, fq=fq)
-    for attempt in range(4):
+    for attempt in range(8):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=30) as r:
-                d = json.load(r).get("data")
+                body = r.read()
+            d = json.loads(body).get("data")  # the WAF answers with an HTML page -> ValueError
             if not isinstance(d, dict) or not d:
                 return []
             k = list(d.values())[0]
             return (k.get(f"{fq}day") or k.get("day") or []) if isinstance(k, dict) else []
         except Exception:
-            time.sleep(1.5 * (attempt + 1))
-    return []
+            time.sleep(min(60, 3 * 2 ** attempt))
+    raise FetchError(code)
 
 
 def _fetch_rows(code: str, fq: str) -> list:
@@ -88,11 +94,18 @@ def fetch_stock(code: str, index: bool = False) -> pd.DataFrame | None:
     return df if len(df) else None
 
 
+def _safe_fetch(code: str) -> pd.DataFrame | None:
+    try:
+        return fetch_stock(code)
+    except FetchError:
+        return None
+
+
 def load_all(workers: int = 24) -> dict[str, pd.DataFrame]:
     codes = code_universe()
     out = {}
     with ThreadPoolExecutor(workers) as ex:
-        for i, (c, df) in enumerate(zip(codes, ex.map(fetch_stock, codes))):
+        for i, (c, df) in enumerate(zip(codes, ex.map(_safe_fetch, codes))):
             if df is not None and len(df) > 60:
                 out[c] = df
             if i % 1000 == 0:
