@@ -42,7 +42,9 @@ def build(prices: dict[str, pd.DataFrame], member: pd.DataFrame, sector: dict[st
     f["log_vol_63"] = np.log(r1.rolling(63).std() + EPS)
     f["vol_ratio"] = sig / (r1.rolling(126).std() + EPS)
     mv = mkt_r.rolling(252).var()
-    f["beta_252"] = r1.rolling(252).cov(mkt_r) / (mv.to_numpy()[:, None] + EPS)
+    exy = r1.mul(mkt_r, axis=0).rolling(252).mean()
+    cov = exy - r1.rolling(252).mean().mul(mkt_r.rolling(252).mean(), axis=0)
+    f["beta_252"] = cov.div(mv + EPS, axis=0)
     f["dist_52w_high"] = np.log(close / close.rolling(252).max())
     lo63, hi63 = close.rolling(63).min(), close.rolling(63).max()
     f["range_pos_63"] = (close - lo63) / (hi63 - lo63 + EPS)
@@ -67,24 +69,18 @@ def build(prices: dict[str, pd.DataFrame], member: pd.DataFrame, sector: dict[st
     fwd = pd.DataFrame(lc.to_numpy()[fwd_idx] - lc.to_numpy()[pos], index=dec, columns=close.columns)
     fwd[pos + H > len(days) - 1] = np.nan
 
-    rows = []
     sec_map = pd.Series({t: sector.get(t, "Unknown") for t in close.columns})
-    for name, df in f.items():
-        f[name] = df.reindex(dec)
     memd = mem.reindex(dec)
-    for i, t in enumerate(dec):
-        ok = memd.loc[t] & close.loc[t].notna()
-        cols = ok[ok].index
-        if len(cols) < 100:
-            continue
-        g = pd.DataFrame({n: df.loc[t, cols] for n, df in f.items()})
-        g["fwd"] = fwd.loc[t, cols]
-        g["sig"] = sig.loc[t, cols]
-        g["sector"] = sec_map[cols].to_numpy()
-        g["date"] = t
-        rows.append(g)
-    X = pd.concat(rows)
-    X.index.name = "ticker"
+    ok = memd & close.reindex(dec).notna()
+    ok = ok[ok.sum(axis=1) >= 100]
+    keep = ok.stack()
+    keep = keep[keep].index  # (date, ticker) pairs, point-in-time members with prices
+    cols = {n: df.reindex(dec).stack(future_stack=True).reindex(keep) for n, df in f.items()}
+    cols["fwd"] = fwd.stack(future_stack=True).reindex(keep)
+    cols["sig"] = sig.reindex(dec).stack(future_stack=True).reindex(keep)
+    X = pd.DataFrame(cols)
+    X.index.names = ["date", "ticker"]
+    X["sector"] = sec_map.reindex(X.index.get_level_values("ticker")).to_numpy()
     X = X.reset_index().replace([np.inf, -np.inf], np.nan)
 
     base = [c for c in f]
