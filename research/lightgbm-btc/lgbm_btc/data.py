@@ -89,8 +89,10 @@ def _monthly_or_daily(
         url = f"{BASE_URL}/{kind_path.format(freq='monthly')}/{fname_prefix}-{ym}.zip"
         dest = cache_dir / kind_path.format(freq="monthly") / f"{fname_prefix}-{ym}.zip"
         month_complete = month.end_time.normalize().tz_localize("UTC") <= end.normalize()
-        if month_complete and _fetch(url, dest):
-            frames.append(_read_zip_csv(dest, columns))
+        if month_complete:
+            if _fetch(url, dest):
+                frames.append(_read_zip_csv(dest, columns))
+            # past months are always published monthly; a 404 means "not listed yet"
             continue
         if not daily_fallback:
             continue
