@@ -28,13 +28,13 @@ from ash.panel import build, wide  # noqa: E402
 RES = Path(__file__).resolve().parent / "results"
 
 
-def simulate(T, ex, raw_open, capital0=10_000.0, n=5, min_comm=5.0, slip=0.001, keep_mult=2):
+def simulate(T, ex, raw_open, capital0=10_000.0, n=5, min_comm=5.0, slip=0.001, keep_mult=2, every=1):
     o, c, lim, days = ex["open"], ex["close"], ex["lim"], ex["days"]
     px = o.combine_first(c.ffill())
     gap = o / c.ffill().shift(1) - 1
     no_buy = (gap >= lim - 0.002) | ((gap >= 0.045) & (o >= ex["high"] - 1e-9)) | o.isna()
     no_sell = o.isna() | (gap <= -(lim - 0.002)) | (gap <= -0.045)
-    dates = sorted(T["date"].unique())
+    dates = sorted(T["date"].unique())[::every]  # rebalance every `every` weeks
     pos_of = {t: days.get_loc(t) for t in dates}
     cash, shares = capital0, {}            # shares in lots of raw shares; value tracked via hfq ratio
     hold_val = {}                          # current market value of each position (CNY)
@@ -104,13 +104,14 @@ def main():
     T = X[X["lgbm"].notna()]
     raw_open = wide(stocks, "raw_open").reindex(ex["days"])
     out = {}
-    for n in (5, 8, 10):
-        for mc, label in ((5.0, "最低5元佣金"), (0.0, "免五")):
-            name = f"持有{n}只·{label}"
-            s = summary(simulate(T, ex, raw_open, n=n, min_comm=mc))
-            out[name] = s
-            print(name, {k: (round(v, 3) if isinstance(v, float) else v) for k, v in s.items() if k != "by_year"},
-                  {y: round(v * 100, 1) for y, v in s["by_year"].items()}, flush=True)
+    runs = [(n, mc, label, 1) for n in (5, 8, 10) for mc, label in ((5.0, "最低5元佣金"), (0.0, "免五"))]
+    runs += [(8, 0.0, "免五", k) for k in (2, 4)] + [(8, 5.0, "最低5元佣金", k) for k in (2, 4)]
+    for n, mc, label, every in runs:
+        name = f"持有{n}只·{label}" + ("" if every == 1 else f"·每{every}周调仓")
+        s = summary(simulate(T, ex, raw_open, n=n, min_comm=mc, every=every))
+        out[name] = s
+        print(name, {k: (round(v, 3) if isinstance(v, float) else v) for k, v in s.items() if k != "by_year"},
+              {y: round(v * 100, 1) for y, v in s["by_year"].items()}, flush=True)
     (RES / "small_capital_summary.json").write_text(json.dumps(out, indent=2, ensure_ascii=False))
 
 
