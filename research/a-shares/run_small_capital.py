@@ -88,11 +88,12 @@ def simulate(T, ex, raw_open, capital0=10_000.0, n=5, min_comm=5.0, slip=0.001, 
 def summary(bt, capital0=10_000.0):
     eq = bt["equity"]
     r = eq.pct_change().fillna(eq.iloc[0] / capital0 - 1)
-    yrs = len(r) / 52
+    yrs = (eq.index[-1] - eq.index[0]).days / 365.25
+    per_year = len(r) / yrs  # rebalances per year (52, 26 or 13)
     by_year = {int(y): float(eq[eq.index.year == y].iloc[-1] / (eq[eq.index.year < y].iloc[-1] if (eq.index.year < y).any() else capital0) - 1)
                for y in sorted(set(eq.index.year))}
     return {"final_equity": float(eq.iloc[-1]), "cagr": float((eq.iloc[-1] / capital0) ** (1 / yrs) - 1),
-            "sharpe": float(r.mean() / r.std() * np.sqrt(52)), "max_dd": float((eq / eq.cummax() - 1).min()),
+            "sharpe": float(r.mean() / r.std() * np.sqrt(per_year)), "max_dd": float((eq / eq.cummax() - 1).min()),
             "avg_positions": float(bt["n"].mean()), "avg_cash_share": float((bt["cash"] / bt["equity"]).mean()),
             "by_year": by_year}
 
