@@ -1,4 +1,7 @@
 cache/
 __pycache__/
 */__pycache__/
-results/accepted/*.parquet
+*.log
+results/*
+!results/.gitkeep
+factors/gp_*.py

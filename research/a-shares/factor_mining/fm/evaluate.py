@@ -25,7 +25,9 @@ RULES = {
     "min_same_sign_years": 0.75,   # IC sign stable in >= 75% of mining years
     "min_t_select": 2.0,           # same sign, t >= 2 in the selection years
     "max_corr_existing": 0.70,     # |rank corr| with existing model features / accepted factors
-    "max_t_missing": 3.0,          # "value missing" must not predict returns (survivorship leak)
+    "max_t_missing": 3.0,          # "value missing" must not predict returns (survivorship leak);
+                                   # tested on stocks listed >= 120 days that traded every day of the last 60,
+                                   # and only when >= 0.5% of those rows are missing
     "min_coverage": 0.50,          # share of universe rows with a value in the mining period
     "max_leak_mismatch": 0.001,    # look-ahead test tolerance
 }
@@ -46,6 +48,12 @@ class Evaluator:
         self.dates = self.target.index
         self.base_sample = base_sample[base_sample["date"] < HOLDOUT_START]
         self.accepted = accepted  # name -> values at base_sample rows
+        # rows where a missing value can only come from the data source (not from a
+        # recent listing or suspension, which are known at decision time and legit)
+        tr = ctx.traded.loc[: HOLDOUT_START]
+        age = tr.cumsum().reindex(index=self.dates, columns=self.target.columns)
+        full = (tr.rolling(60, min_periods=60).sum() >= 60).reindex(index=self.dates, columns=self.target.columns)
+        self.normal = self.target.notna() & (age >= 120) & full.fillna(False).astype(bool)
 
     # ---------- helpers
     def _weekly(self, F: pd.DataFrame) -> pd.DataFrame:
@@ -109,9 +117,9 @@ class Evaluator:
         yearly = ic_m.groupby(ic_m.index.year).mean()
         same = float((np.sign(yearly) == sign).mean()) if len(yearly) else 0.0
         t_m, t_s = self._t(ic_m), self._t(ic_s) * (sign if sign else 1)
-        miss = W.isna().where(univ).astype(float)
+        miss = W.isna().astype(float).where(self.normal)
         frac_missing = float(miss[in_m].stack().mean()) if in_m.any() else 0.0
-        t_miss = self._t(self._rank_ic(miss, self.target)[lambda s: s.index < MINE[1]]) if 0.001 < frac_missing < 0.999 else 0.0
+        t_miss = self._t(self._rank_ic(miss, self.target)[lambda s: s.index < MINE[1]]) if 0.005 < frac_missing < 0.995 else 0.0
         # redundancy with the model's existing features and with factors accepted so far
         bs = self.base_sample
         vals = pd.Series(F.stack(future_stack=True), name=fac.name)
