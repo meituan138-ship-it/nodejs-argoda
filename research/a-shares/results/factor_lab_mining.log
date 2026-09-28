@@ -1,0 +1,53 @@
+  0/9700 codes checked, 1 with data
+  1000/9700 codes checked, 835 with data
+  2000/9700 codes checked, 1067 with data
+  3000/9700 codes checked, 1689 with data
+  4000/9700 codes checked, 2151 with data
+  5000/9700 codes checked, 2494 with data
+  6000/9700 codes checked, 3001 with data
+  7000/9700 codes checked, 3406 with data
+  8000/9700 codes checked, 4320 with data
+  9000/9700 codes checked, 5257 with data
+  moneyflow 0/5460, 1 with data
+  moneyflow 500/5460, 501 with data
+  moneyflow 1000/5460, 1001 with data
+  moneyflow 1500/5460, 1501 with data
+  moneyflow 2000/5460, 2001 with data
+  moneyflow 2500/5460, 2498 with data
+  moneyflow 3000/5460, 2998 with data
+  moneyflow 3500/5460, 3498 with data
+  moneyflow 4000/5460, 3998 with data
+  moneyflow 4500/5460, 4498 with data
+  moneyflow 5000/5460, 4998 with data
+money-flow coverage: 5457/5460 stocks
+mf_net_ratio_1           IC挖掘 -0.0220 (t -4.3, 同号年份 100%) | 筛选 -0.0222 (t +2.4) | 相关 0.63(ret_1) | 缺失t +0.0 | ✅ 保留
+mf_net_ratio_5           IC挖掘 -0.0467 (t -8.5, 同号年份 100%) | 筛选 -0.0383 (t +4.3) | 相关 0.63(ret_5) | 缺失t +0.0 | ✅ 保留
+mf_net_ratio_20          IC挖掘 -0.0540 (t -10.4, 同号年份 100%) | 筛选 -0.0517 (t +6.0) | 相关 0.58(ret_20) | 缺失t +0.0 | ✅ 保留
+mf_xl_ratio_5            IC挖掘 -0.0386 (t -10.0, 同号年份 100%) | 筛选 -0.0269 (t +4.4) | 相关 0.49(ret_5) | 缺失t +0.0 | ✅ 保留
+mf_net_z_60              IC挖掘 -0.0145 (t -3.0, 同号年份 62%) | 筛选 -0.0122 (t +1.3) | 相关 0.64(ret_1) | 缺失t +0.0 | ✗
+mf_pos_days_10           IC挖掘 -0.0196 (t -4.5, 同号年份 88%) | 筛选 -0.0204 (t +2.7) | 相关 0.49(ret_10) | 缺失t +0.0 | ✅ 保留
+mf_price_divergence_5    IC挖掘 -0.0167 (t -3.7, 同号年份 75%) | 筛选 +0.0006 (t -0.1) | 相关 0.45(ret_5) | 缺失t +0.0 | ✗
+turnover_5               IC挖掘 -0.0573 (t -6.5, 同号年份 100%) | 筛选 -0.0740 (t +5.4) | 相关 0.62(vol_20) | 缺失t +0.0 | ✅ 保留
+turnover_20              IC挖掘 -0.0500 (t -5.4, 同号年份 100%) | 筛选 -0.0701 (t +5.0) | 相关 0.67(range_20) | 缺失t +0.0 | ✅ 保留
+turnover_ratio_5_60      IC挖掘 -0.0371 (t -6.7, 同号年份 100%) | 筛选 -0.0447 (t +4.1) | 相关 0.74(amount_ratio_5_20) | 缺失t +0.0 | ✗
+turnover_std_20          IC挖掘 -0.0625 (t -7.6, 同号年份 100%) | 筛选 -0.0694 (t +5.6) | 相关 0.68(vol_20) | 缺失t +0.0 | ✅ 保留
+log_free_cap             IC挖掘 -0.0093 (t -1.1, 同号年份 50%) | 筛选 -0.0222 (t +1.6) | 相关 0.75(amihud_20) | 缺失t +0.0 | ✗
+upper_shadow_20          IC挖掘 -0.0017 (t -0.6, 同号年份 75%) | 筛选 -0.0069 (t +1.2) | 相关 0.19(intraday_20) | 缺失t +0.0 | ✗
+lower_shadow_20          IC挖掘 +0.0093 (t +2.0, 同号年份 62%) | 筛选 +0.0228 (t +2.6) | 相关 0.31(vol_20) | 缺失t +0.0 | ✗
+close_location_20        IC挖掘 -0.0139 (t -2.5, 同号年份 88%) | 筛选 -0.0139 (t +1.4) | 相关 0.54(intraday_20) | 缺失t +0.0 | ✗
+gap_up_count_20          IC挖掘 -0.0414 (t -9.3, 同号年份 100%) | 筛选 -0.0536 (t +6.3) | 相关 0.42(vol_20) | 缺失t +0.0 | ✅ 保留
+up_days_60               IC挖掘 -0.0103 (t -1.9, 同号年份 75%) | 筛选 -0.0460 (t +3.9) | 相关 0.50(ret_60) | 缺失t +0.0 | ✗
+up_volume_share_20       IC挖掘 -0.0298 (t -6.1, 同号年份 88%) | 筛选 -0.0350 (t +3.6) | 相关 0.64(ret_20) | 缺失t +0.0 | ✅ 保留
+kurt_60                  IC挖掘 +0.0036 (t +0.6, 同号年份 62%) | 筛选 +0.0162 (t +2.4) | 相关 0.27(dist_low_250) | 缺失t +0.0 | ✗
+vol_of_vol_60            IC挖掘 -0.0152 (t -3.0, 同号年份 88%) | 筛选 +0.0096 (t -1.2) | 相关 0.23(log_price) | 缺失t +0.0 | ✗
+dd_60                    IC挖掘 -0.0242 (t -2.8, 同号年份 75%) | 筛选 -0.0259 (t +1.7) | 相关 0.75(ma_dev_60) | 缺失t +0.0 | ✗
+dist_high_20             IC挖掘 -0.0084 (t -1.1, 同号年份 62%) | 筛选 +0.0066 (t -0.5) | 相关 0.70(ma_dev_20) | 缺失t +0.0 | ✗
+close_vs_vwap_20         IC挖掘 -0.0473 (t -6.4, 同号年份 100%) | 筛选 -0.0357 (t +3.1) | 相关 0.95(ma_dev_20) | 缺失t +0.0 | ✗
+pv_corr_60               IC挖掘 -0.0503 (t -11.5, 同号年份 100%) | 筛选 -0.0437 (t +4.8) | 相关 0.55(pv_corr_20) | 缺失t +0.0 | ✅ 保留
+idio_ret_20              IC挖掘 -0.0515 (t -7.5, 同号年份 100%) | 筛选 -0.0450 (t +3.8) | 相关 0.94(ret_20) | 缺失t +0.0 | ✗
+rev_x_turnover           IC挖掘 +0.0256 (t +3.1, 同号年份 88%) | 筛选 +0.0017 (t +0.1) | 相关 0.69(ret_5) | 缺失t +0.0 | ✗
+limit_up_recent_5        IC挖掘 -0.0478 (t -13.2, 同号年份 100%) | 筛选 -0.0468 (t +8.5) | 相关 0.41(limit_up_20) | 缺失t +0.0 | ✅ 保留
+amihud_change            IC挖掘 +0.0314 (t +5.9, 同号年份 100%) | 筛选 +0.0504 (t +4.3) | 相关 0.73(amount_ratio_20_120) | 缺失t +0.0 | ✗
+ret_60_skip_5            IC挖掘 -0.0261 (t -3.5, 同号年份 75%) | 筛选 -0.0521 (t +3.4) | 相关 0.94(ret_60) | 缺失t +0.0 | ✗
+max_ret_5                IC挖掘 -0.0546 (t -8.8, 同号年份 100%) | 筛选 -0.0699 (t +6.1) | 相关 0.60(ret_5) | 缺失t +0.0 | ✅ 保留
+kept: ['mf_net_ratio_1', 'mf_net_ratio_5', 'mf_net_ratio_20', 'mf_xl_ratio_5', 'mf_pos_days_10', 'turnover_5', 'turnover_20', 'turnover_std_20', 'gap_up_count_20', 'up_volume_share_20', 'pv_corr_60', 'limit_up_recent_5', 'max_ret_5']
