@@ -87,7 +87,7 @@
 
 ## 交付
 
-结束时给出：
+结束时运行 `python pack_results.py`，并给出：
 1. `python mine.py --status` 的完整输出
 2. NOTES.md：试了哪些方向、通过了哪些、哪些方向整体失败
 3. 通过因子的列表：名称、出处、逻辑、mining t、selection t

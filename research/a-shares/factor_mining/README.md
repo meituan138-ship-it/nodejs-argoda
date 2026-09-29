@@ -9,6 +9,7 @@ factor_mining/
   AGENT_GUIDE.md        给 AI 的指令：整篇发给 Codex
   prepare_data.py       一次性：下载数据并建缓存（免费接口，首次 2-4 小时）
   mine.py               验收因子文件，记账
+  pack_results.py       挖完打包发回（<1MB，不含数据）
   gp_search.py          遗传规划自动搜索公式（数据驱动，不靠 AI 想象）
   final_check.py        封存期检验（2023-01 → 最新），只由你来跑
   fm/ops.py             因子算子（只回看，不看未来）
@@ -54,7 +55,11 @@ python final_check.py
 
 ## 挖完发回给我什么
 
-把 `factors/`、`results/ledger.csv`、`results/accepted/*.py.txt`、`NOTES.md` 打包发来（`cache/` 不用发，太大）。
+```bash
+python pack_results.py      # 生成 mining_results_<日期>.zip，通常不到 1MB
+```
+只打包因子代码、试验账本、通过的公式、NOTES.md，不含任何数据。`cache/`（约 1.4GB）和 `results/accepted/*.parquet` 不用发，
+我这边按代码在同一份数据上重算。
 我会在同一份数据上复核，然后把通过的因子加进周度 LightGBM，在封存期对比基线。
 
 ## 注意

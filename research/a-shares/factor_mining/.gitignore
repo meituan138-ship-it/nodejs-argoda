@@ -5,3 +5,5 @@ __pycache__/
 results/*
 !results/.gitkeep
 factors/gp_*.py
+
+mining_results_*.zip
