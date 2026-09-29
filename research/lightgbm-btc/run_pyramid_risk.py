@@ -64,7 +64,7 @@ def simulate(px, fund, cfg, start, end=None, capital=1000.0):
     for i in range(len(idx)):
         if units == 0 and new_day[i] and sig[i] and atr[i] > 0 and (up[i] or not filt) and cash > 10:
             p, a0 = o[i], atr[i]
-            unit_size = min(risk * cash / (m * a0), LEV_CAP * cash / MAX_UNITS / p)
+            unit_size = min(risk * cash / (m * a0), cfg.get("lev_cap", LEV_CAP) * cash / MAX_UNITS / p)
             units, avg, nu, last_add = unit_size, p, 1, p
             stop = p - m * a0
             cash -= units * p * COST
